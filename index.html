@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>PBF造形コスト</title>
+        <style>
+            body {
+                font-family: 'Arial', sans-serif;
+                margin: 0;
+                padding: 0;
+                background-color: #f4f4f9;
+                color: #333;
+            }
+
+            .info-container {
+                width: 40%;
+                margin: 20px auto;
+                padding: 15px;
+                background: #f8f9fa;
+                border-left: 5px solid #3498db;
+                border-radius: 8px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            }
+
+            .info-container h2 {
+                margin: 0 0 10px;
+                color: #2c3e50;
+                font-size: 18px;
+            }
+
+            .info-container ul {
+                margin: 0;
+                padding: 0;
+                list-style-type: none;
+            }
+
+            .info-container li {
+                padding: 5px 0;
+                font-size: 14px;
+                color: #555;
+            }
+
+            .container {
+                width: 40%;
+                margin: 20px auto;
+                padding: 20px;
+                background: #fff;
+                border-radius: 8px;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            }
+
+            #result-container {
+                width: 40%;
+                margin: 20px auto;
+                padding: 15px;
+                background: #eef5ff;
+                border-left: 5px solid #2c7be5;
+                border-radius: 8px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            }
+
+            #result-container h2 {
+                color: #2c3e50;
+                font-size: 20px;
+            }
+
+            #results p {
+                font-size: 16px;
+                color: #333;
+                margin: 5px 0;
+            }
+
+            h1 {
+                text-align: center;
+                color: #2c3e50;
+            }
+
+            label {
+                display: block;
+                margin: 10px 0 5px;
+            }
+
+            input,
+            button {
+                width: 80%;
+                max-width: 400px;
+                padding: 8px;
+                margin-bottom: 15px;
+                border: 1px solid #b5b5b5;
+                border-radius: 4px;
+            }
+
+            button {
+                background-color: #5389fe;
+                color: #fff;
+                font-size: 18px;
+                cursor: pointer;
+                padding: 12px;
+                margin-top: 20px;
+                margin-bottom: 20px;
+                width: 100%;
+                border-radius: 6px;
+            }
+
+            button:hover {
+                background-color: #256aff;
+            }
+
+            .button-group button {
+                width: 30%;
+                margin: 5px;
+                background-color: #bebfc0;
+                border: none;
+                color: white;
+                border-radius: 4px;
+                padding: 10px;
+                cursor: pointer;
+            }
+
+            .button-group button.selected {
+                background-color: #3e8cf9;
+            }
+
+            .cost-input {
+                display: none;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="info-container">
+            <h2>未反映の項目</h2>
+            <ul>
+                <li>オペレータの人件費</li>
+                <li>ベースプレート費用（設備レートを若干上積みすることで対応可）</li>
+                <li>粉末劣化に伴う廃棄分（材料単価を若干上積みすることで対応可）</li>
+            </ul>
+        </div>
+
+        <div class="container">
+            <h1>PBF造形コスト</h1>
+            <form id="inputForm">
+                <label for="weight">部品の重量W[kg]: </label>
+                <input type="text" id="weight" required step="0.01" placeholder="例: 1"><br>
+
+                <label>材料: </label>
+                <div id="materialButtons" class="button-group">
+                    <button type="button" data-value="SUS316L" onclick="selectMaterial('SUS316L')">SUS316L</button>
+                    <button type="button" data-value="Alloy718" onclick="selectMaterial('Alloy718')">Alloy718</button>
+                </div>
+
+                <input type="hidden" id="selectedMaterial" required>
+
+                <div class="cost-input">
+                    <label id="costLabel">材料単価（千円/kg）: </label>
+                    <input type="text" id="costPerKg" step="0.01" placeholder="例: 7">
+                </div>
+
+                <label>造形速度R[cc/h]: </label>
+                <div id="speedButtons" class="button-group">
+                    <button type="button" data-value="10" onclick="selectSpeed(10)">10</button>
+                    <button type="button" data-value="15" onclick="selectSpeed(15)">15</button>
+                    <button type="button" data-value="20" onclick="selectSpeed(20)">20</button>
+                    <button type="button" data-value="30" onclick="selectSpeed(30)">30</button>
+                    <button type="button" data-value="40" onclick="selectSpeed(40)">40</button>
+                    <button type="button" data-value="50" onclick="selectSpeed(50)">50</button>
+                </div>
+
+                <input type="hidden" id="selectedSpeed" required>
+
+                <label for="machineHour">設備レートM[千円/h]: </label>
+                <input type="text" id="machineHour" required step="0.01" placeholder="例: 5"><br>
+
+                <label>造形前段取り[h]: </label>
+                <div id="setupTimeButtons" class="button-group">
+                    <button type="button" onclick="selectSetupTime(0.5)">0.5</button>
+                    <button type="button" onclick="selectSetupTime(1)">1</button>
+                    <button type="button" onclick="selectSetupTime(2)">2</button>
+                </div>
+                <input type="hidden" id="selectedSetupTime" required>
+
+                <label>造形後の後処理[h]: </label>
+                <div id="postProcessingButtons" class="button-group">
+                    <button type="button" onclick="selectPostProcessingTime(2)">2</button>
+                    <button type="button" onclick="selectPostProcessingTime(6)">6</button>
+                    <button type="button" onclick="selectPostProcessingTime(10)">10</button>
+                </div>
+                <input type="hidden" id="selectedPostProcessingTime" required>
+
+                <button type="button" onclick="calculateCost()">計算する</button>
+            </form>
+        </div>
+
+        <div id="result-container">
+            <h2>計算結果</h2>
+            <div id="results"></div>
+        </div>
+
+        <script>
+            let selectedSetupTime = null;
+            let selectedPostProcessingTime = null;
+
+            function selectMaterial(material) {
+                selectedMaterial = material;
+                document.getElementById("selectedMaterial").value = material;
+
+                document.querySelectorAll("#materialButtons button").forEach(button => button.classList.remove("selected"));
+                document.querySelector(`#materialButtons button[data-value="${material}"]`).classList.add("selected");
+
+                // 材料選択後に「材料単価」の入力フォームを表示
+                document.querySelector(".cost-input").style.display = "block";
+
+                // 選択された材料の名前をラベルに反映
+                document.getElementById("costLabel").textContent = `${material} の材料単価（千円/kg）:`;
+            }
+
+            function selectSpeed(speed) {
+                selectedSpeed = speed;
+                document.getElementById("selectedSpeed").value = speed;
+
+                document.querySelectorAll("#speedButtons button").forEach(button => button.classList.remove("selected"));
+                document.querySelector(`#speedButtons button[data-value="${speed}"]`).classList.add("selected");
+            }
+
+            function selectSetupTime(time) {
+                selectedSetupTime = time;
+                document.getElementById("selectedSetupTime").value = time;
+
+                document.querySelectorAll("#setupTimeButtons button").forEach(button => button.classList.remove("selected"));
+                document.querySelector(`button[onclick="selectSetupTime(${time})"]`).classList.add("selected");
+            }
+
+            function selectPostProcessingTime(time) {
+                selectedPostProcessingTime = time;
+                document.getElementById("selectedPostProcessingTime").value = time;
+
+                document.querySelectorAll("#postProcessingButtons button").forEach(button => button.classList.remove("selected"));
+                document.querySelector(`button[onclick="selectPostProcessingTime(${time})"]`).classList.add("selected");
+            }
+
+            function calculateCost() {
+                const weight = parseFloat(document.getElementById("weight").value);
+                const material = selectedMaterial;
+                const speed = selectedSpeed;
+                const machineHour = parseFloat(document.getElementById("machineHour").value);
+                const costPerKg = parseFloat(document.getElementById("costPerKg").value);
+                const setupTime = selectedSetupTime || 0;
+                const postProcessingTime = selectedPostProcessingTime || 0;
+
+                if (!material || !speed || isNaN(weight) || isNaN(machineHour) || isNaN(costPerKg)) {
+                    alert("全ての項目を正しく入力してください。");
+                    return;
+                }
+
+                const materialProperties = {
+                    "SUS316L": { density: 0.00798 },
+                    "Alloy718": { density: 0.00819 }
+                };
+
+                const density = materialProperties[material].density;
+                const volume = Math.floor(weight / density);
+                const netTime = Math.floor(volume / speed); // 正味造形時間
+                const totalTime = netTime + setupTime + postProcessingTime; // 全体の造形時間
+                const materialCost = Math.floor(weight * costPerKg);
+                const buildingCost = Math.floor(machineHour * totalTime);
+                const totalCost = materialCost + buildingCost;
+
+                document.getElementById("results").innerHTML = `
+    <p>部品の体積V: ${volume.toLocaleString()} cc</p>
+    <p>造形時間T: ${totalTime.toLocaleString()} h, （うち、正味造形時間 ${netTime.toLocaleString()} h）</p>
+    <p>材料費Cm: ${materialCost.toLocaleString()} 千円</p>
+    <p>造形費Cb: ${buildingCost.toLocaleString()} 千円</p>
+    <p><strong>部品原価C: ${totalCost.toLocaleString()} 千円</strong></p>
+    <hr>
+    <p style="font-size:12px; color: #666;">
+        ※計算式<br>
+        密度ρ = ${density} kg/cc<br>
+        V = W / ρ = ${weight} / ${density} = ${volume} cc<br>
+        T = V / R + T₁ + T₂ = ${volume} / ${speed} + ${setupTime} + ${postProcessingTime} = ${totalTime} h<br>
+        Cm = W × 材料単価 = ${weight} × ${costPerKg} = ${materialCost} 千円<br>
+        Cb = M × T = ${machineHour} × ${totalTime} = ${buildingCost} 千円<br>
+        C = Cm + Cb = ${materialCost} + ${buildingCost} = ${totalCost} 千円
+    </p>
+`;
+            }
+        </script>
+    </body>
+
+</html>
